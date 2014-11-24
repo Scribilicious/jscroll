@@ -17,7 +17,6 @@
     // Define the jscroll namespace and default settings
     $.jscroll = {
         defaults: {
-            debug: false,
             autoTrigger: true,
             autoTriggerUntil: false,
             loadingHtml: '<small>Loading...</small>',
@@ -25,6 +24,7 @@
             nextSelector: 'a:last',
             contentSelector: '',
             pagingSelector: '',
+            offset: 0,
             callback: false
         }
     };
@@ -100,8 +100,6 @@
                 iTotalHeight = Math.ceil(iTopHeight - innerTop + _$scroll.height() + iContainerTop);
 
             if (!data.waiting && iTotalHeight + _options.padding >= $inner.outerHeight()) {
-                //data.nextHref = $.trim(data.nextHref + ' ' + _options.contentSelector);
-                _debug('info', 'jScroll:', $inner.outerHeight() - iTotalHeight, 'from bottom. Loading next request...');
                 return _load();
             }
         }
@@ -110,7 +108,6 @@
         function _checkNextHref(data) {
             data = data || $e.data('jscroll');
             if (!data || !data.nextHref) {
-                _debug('warn', 'jScroll: nextSelector not found - destroying');
                 _destroy();
                 return false;
             } else {
@@ -152,7 +149,7 @@
                 .children('.jscroll-added').last()
                 .html('<div class="jscroll-loading">' + _options.loadingHtml + '</div>');
 
-            return $e.animate({scrollTop: $inner.outerHeight()}, 0, function() {
+            return $e.animate({scrollTop: $inner.outerHeight()+_options.offset}, 0, function() {
                 $inner.find('div.jscroll-added').last().load(data.nextHref, function(r, status, xhr) {
                     if (status === 'error') {
                         return _destroy();
@@ -165,28 +162,8 @@
                     if (_options.callback) {
                         _options.callback.call(this);
                     }
-                    _debug('dir', data);
                 });
             });
-        }
-
-        // Safe console debug - http://klauzinski.com/javascript/safe-firebug-console-in-javascript
-        function _debug(m) {
-            if (_options.debug && typeof console === 'object' && (typeof m === 'object' || typeof console[m] === 'function')) {
-                if (typeof m === 'object') {
-                    var args = [];
-                    for (var sMethod in m) {
-                        if (typeof console[sMethod] === 'function') {
-                            args = (m[sMethod].length) ? m[sMethod] : [m[sMethod]];
-                            console[sMethod].apply(console, args);
-                        } else {
-                            console.log.apply(console, args);
-                        }
-                    }
-                } else {
-                    console[m].apply(console, Array.prototype.slice.call(arguments, 1));
-                }
-            }
         }
 
         // Expose API methods via the jQuery.jscroll namespace, e.g. $('sel').jscroll.method()
